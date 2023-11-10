@@ -36,10 +36,9 @@ func main() {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		payload, err := hook.Parse(r, github.PushEvent, github.PullRequestEvent)
 		if err != nil {
-			if err == github.ErrEventNotFound {
-				// ok event wasn't one of the ones asked to be parsed
-				fmt.Printf("[receiving] ErrEventNotFound: %v\n", err)
-			}
+			log.Printf("[receiving] hook.Parse: err=%v\n", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 		switch payload.(type) {
 
@@ -53,11 +52,21 @@ func main() {
 			prjKey = strings.ReplaceAll(prjKey, "-", "_")
 			envKey := fmt.Sprintf("PRJ_PATH_%s", prjKey)
 			prjPath := os.Getenv(envKey)
-			cmds := fmt.Sprintf("cd %q && (git stash || true) && git pull --rebase && (git stash pop || true)", prjPath)
 
-			cmd := exec.Command("/bin/sh", "-c", cmds)
+			cmds := []string{
+				fmt.Sprintf("cd %q", prjPath),
+				"(git stash || true)",
+				"git pull --rebase",
+				"(git stash pop || true)",
+				// if there is any conflicts, leave it for manually resolving
+				"git add .",
+				"git reset .",
+			}
+			sh := strings.Join(cmds, " && ")
+			cmd := exec.Command("/bin/sh", "-c", sh)
 			if err := cmd.Run(); err != nil {
 				log.Printf("[error] git pull: path=%q, err=%v\n", prjPath, err)
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			fmt.Printf("[done] git pull: path=%q\n", prjPath)
