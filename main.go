@@ -44,7 +44,6 @@ func main() {
 
 		case github.PushPayload:
 			p := payload.(github.PushPayload)
-			// Do whatever you want from here...
 			// fmt.Printf("[receiving] push: %+v\n", push) // ** verbose
 			fmt.Printf("[receiving] push: repo=%s, sender=%s\n", p.Repository.FullName, p.Sender.Login)
 
@@ -53,9 +52,11 @@ func main() {
 			envKey := fmt.Sprintf("PRJ_PATH_%s", prjKey)
 			prjPath := os.Getenv(envKey)
 
+			// todo: stash and pop by specific name
+			// todo: detect if ws is clean
 			cmds := []string{
 				fmt.Sprintf("cd %q", prjPath),
-				"(git stash || true)",
+				"git stash",
 				"git pull --rebase",
 				"(git stash pop || true)",
 				// if there is any conflicts, leave it for manually resolving
