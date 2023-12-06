@@ -56,7 +56,7 @@ func main() {
 			// todo: detect if ws is clean
 			cmds := []string{
 				fmt.Sprintf("cd %q", prjPath),
-				"git stash",
+				"git stash -u",
 				"git pull --rebase",
 				"(git stash pop || true)",
 				// if there is any conflicts, leave it for manually resolving
