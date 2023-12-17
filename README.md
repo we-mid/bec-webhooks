@@ -1,6 +1,6 @@
 Todo
-- [ ] stash and pop by specific name
-- [ ] detect if ws is clean
+- [x] stash and pop by specific name
+- [x] detect if ws is clean
 - [x] handle conflicts (leave it for manually resolving)
 
 Article: [GitHub Webhooks 技术方案及落地](https://bec.today/fx/?draft/github-webhooks)
