@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/go-playground/webhooks/v6/github"
@@ -40,10 +39,9 @@ func main() {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		switch payload.(type) {
+		switch p := payload.(type) {
 
 		case github.PushPayload:
-			p := payload.(github.PushPayload)
 			// fmt.Printf("[receiving] push: %+v\n", push) // ** verbose
 			fmt.Printf("[receiving] push: repo=%s, sender=%s\n", p.Repository.FullName, p.Sender.Login)
 
@@ -52,30 +50,15 @@ func main() {
 			envKey := fmt.Sprintf("PRJ_PATH_%s", prjKey)
 			prjPath := os.Getenv(envKey)
 
-			// todo: stash and pop by specific name
-			// todo: detect if ws is clean
-			cmds := []string{
-				fmt.Sprintf("cd %q", prjPath),
-				"git stash -u",
-				"git pull --rebase",
-				"(git stash pop || true)",
-				// if there is any conflicts, leave it for manually resolving
-				"git add .",
-				"git reset .",
-			}
-			sh := strings.Join(cmds, " && ")
-			cmd := exec.Command("/bin/sh", "-c", sh)
-			if err := cmd.Run(); err != nil {
-				log.Printf("[error] git pull: path=%q, err=%v\n", prjPath, err)
+			if err := pull(prjPath); err != nil {
+				log.Printf("[error] pull: path=%q, err=%v\n", prjPath, err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			fmt.Printf("[done] git pull: path=%q\n", prjPath)
+			fmt.Printf("[done] pull: path=%q\n", prjPath)
 
 		case github.PullRequestPayload:
-			p := payload.(github.PullRequestPayload)
 			// Do whatever you want from here...
-			// fmt.Printf("[receiving] pullRequest: %+v\n", pullRequest) // verbose
 			fmt.Printf("[receiving] pullRequest: repo=%s, sender=%s\n", p.Repository.FullName, p.Sender.Login)
 		}
 	})
