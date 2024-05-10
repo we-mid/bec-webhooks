@@ -21,6 +21,7 @@ func pull(dir string) error {
 			git stash push -u -m "$dt"
 		fi
 		git pull --rebase
+		git submodule update --init --recursive
 
 		if [ $not_clean = true ]
 		then

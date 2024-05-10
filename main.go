@@ -33,7 +33,7 @@ func main() {
 	hook, _ := github.New(github.Options.Secret(secret))
 
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		payload, err := hook.Parse(r, github.PushEvent, github.PullRequestEvent)
+		payload, err := hook.Parse(r, github.PingEvent, github.PushEvent)
 		if err != nil {
 			log.Printf("[receiving] hook.Parse: err=%v\n", err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -57,9 +57,8 @@ func main() {
 			}
 			fmt.Printf("[done] pull: path=%q\n", prjPath)
 
-		case github.PullRequestPayload:
-			// Do whatever you want from here...
-			fmt.Printf("[receiving] pullRequest: repo=%s, sender=%s\n", p.Repository.FullName, p.Sender.Login)
+		case github.PingPayload:
+			fmt.Printf("[receiving] ping: repo=%s, sender=%s\n", p.Repository.FullName, p.Sender.Login)
 		}
 	})
 	http.ListenAndServe(addr, nil)
