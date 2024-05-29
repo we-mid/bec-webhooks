@@ -2,7 +2,7 @@
   "apps": [
     {
       "name": "bec-webhooks",
-      "script": "go build && ./bec-webhooks",
+      "script": "./bec-webhooks",
       "log_date_format": "MM-DD HH:mm"
     }
   ]
